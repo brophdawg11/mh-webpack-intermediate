@@ -1,4 +1,4 @@
-# Webpack Fundamentals Mentor Hour
+# Webpack Intermediate Mentor Hour
 
 Starting point for the "Webpack Intermediate" Mentor Hour
 
