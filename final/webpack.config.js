@@ -1,12 +1,12 @@
 const path = require('path');
 
 const CopyPlugin = require('copy-webpack-plugin');
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
 module.exports = {
     mode: process.env.NODE_ENV || 'development',
-    devtool: 'inline-source-map',
+    devtool: false,
 
     entry: {
         main: './src/js/index.js',
@@ -14,6 +14,8 @@ module.exports = {
 
     output: {
         path:  path.join(process.cwd(), 'dist'),
+        //filename: process.env.NODE_ENV === 'production' ? '[name]-[chunkhash].js' : '[name].js',
+        chunkFilename: process.env.NODE_ENV === 'production' ? 'async/[name]-[chunkhash].js' : 'async/[name].js',
     },
 
     resolve: {
@@ -30,8 +32,9 @@ module.exports = {
                 loader: 'babel-loader',
                 options: {
                     presets: [
-                        ['@babel/preset-env', { targets: "chrome 88" }]
+                        ['@babel/preset-env', { targets: "chrome 48" }]
                     ],
+                    exclude: /node_modules\/?!(@urbn\/state-machine)/,
                 },
             },
 
@@ -74,8 +77,9 @@ module.exports = {
             {
                 test: /\.s?css$/,
                 use: [
-                    // MiniCssExtractPlugin.loader,
-                    'style-loader',
+                    process.env.NODE_ENV === 'production' ?
+                        MiniCssExtractPlugin.loader :
+                        'style-loader',
                     'css-loader',
                     'sass-loader',
                 ],
@@ -84,11 +88,22 @@ module.exports = {
         ],
     },
 
+    performance: {
+        //hints: 'error', // 'warning'
+        // maxEntrypointSize: 10,
+        // maxAssetSize: 10,
+        // Only enforce the asset file size against js files (exclude Sourcemaps
+        // and SVG, etc.)
+        //assetFilter: filename => filename.endsWith('.js'),
+    },
+
     plugins: [
         new CopyPlugin({
             patterns: [{ from: 'src/html/index.html' }],
         }),
-        // new MiniCssExtractPlugin(),
+        ...(process.env.NODE_ENV === 'production' ? [
+            new MiniCssExtractPlugin()
+        ] : []),
         new webpack.DefinePlugin({
             ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
         }),
